@@ -4,31 +4,161 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Train Velocity Tracker</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-        
-        h1 {
-            text-align: center;
-        }
-        
-        canvas {
-            display: block;
-            margin: 20px auto;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.3/html2canvas.min.js"></script>
 </head>
 <body>
     <h1>Train Velocity Tracker</h1>
-    <canvas id="velocityChart" width="800" height="400"></canvas>
+    <canvas id="velocityChart"></canvas>
     <button id="startTracking">Start Tracking</button>
-    <a id="downloadImage" download="velocity_chart.png" style="display: none;">Download Image</a>
     <button id="captureAndDownload">Capture and Download</button>
-    <a id="downloadGeoData" download="geo_data.json" style="display: none;">Download Geo Data</a>
+    <a id="downloadImage" download="velocity_chart.png" style="display: none;">Download Image</a>
     <button id="downloadGeo">Download Geo Data</button>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.3/html2canvas.min.js"></script>
-    <script src="script.js"></script>
+    <a id="downloadGeoData" download="geo_data.json" style="display: none;">Download Geo Data</a>
+
+    <script>
+        const ctx = document.getElementById("velocityChart").getContext("2d");
+
+        const chartData = {
+            datasets: [
+                {
+                    label: "Velocity",
+                    data: [],
+                    backgroundColor: "rgba(75, 192, 192, 0.2)",
+                    borderColor: "rgba(75, 192, 192, 1)",
+                    borderWidth: 2
+                }
+            ]
+        };
+
+        const velocityChart = new Chart(ctx, {
+            type: "scatter",
+            data: chartData,
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: "Train Velocity Tracker"
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: "Distance (km)"
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: "Velocity (km/h)"
+                        },
+                        min: 0
+                    }
+                }
+            }
+        });
+
+        const startTrackingButton = document.getElementById("startTracking");
+        const captureAndDownloadButton = document.getElementById("captureAndDownload");
+        const downloadImageLink = document.getElementById("downloadImage");
+        const downloadGeoButton = document.getElementById("downloadGeo");
+        const downloadGeoDataLink = document.getElementById("downloadGeoData");
+
+        const geoData = [];
+
+        startTrackingButton.addEventListener("click", () => {
+            if (navigator.geolocation) {
+                let previousPosition = null;
+                let distance = 0;
+
+                navigator.geolocation.watchPosition(
+                    position => {
+                        if (previousPosition) {
+                            const currentPosition = {
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude
+                            };
+
+                            const deltaDistance = haversineDistance(previousPosition, currentPosition);
+                            distance += deltaDistance;
+
+                            const deltaTime = (position.timestamp - previousPosition.timestamp) / 1000;
+                            const velocity = (deltaDistance * 1000 / deltaTime) * 3.6;
+
+                            chartData.datasets[0].data.push({ x: distance.toFixed(2), y: velocity.toFixed(2) });
+                            velocityChart.update();
+
+                            geoData.push({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                timestamp: position.timestamp
+                            });
+                        }
+
+                        previousPosition = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude,
+                            timestamp: position.timestamp
+                        };
+                    },
+                    error => {
+                        console.log("Error: " + error.message);
+                   
+                    },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 5000,
+                    maximumAge: 0
+                }
+            );
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    });
+
+    captureAndDownloadButton.addEventListener("click", () => {
+        html2canvas(velocityChart.canvas).then(canvas => {
+            const timestamp = new Date().toISOString().replace(/[:\-T]/g, "_").replace(/\..+/, "");
+            downloadImageLink.download = `velocity_chart_${timestamp}.png`;
+            downloadImageLink.href = canvas.toDataURL("image/png");
+            downloadImageLink.style.display = "block";
+            downloadImageLink.click();
+        });
+    });
+
+    downloadGeoButton.addEventListener("click", () => {
+        const jsonGeoData = JSON.stringify(geoData);
+        const blob = new Blob([jsonGeoData], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+
+        downloadGeoDataLink.href = url;
+        downloadGeoDataLink.style.display = "block";
+        downloadGeoDataLink.click();
+
+        URL.revokeObjectURL(url);
+    });
+
+    function haversineDistance(coord1, coord2) {
+        const R = 6371;
+        const dLat = degToRad(coord2.latitude - coord1.latitude);
+        const dLng = degToRad(coord2.longitude - coord1.longitude);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(degToRad(coord1.latitude)) * Math.cos(degToRad(coord2.latitude)) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c;
+    }
+
+    function degToRad(deg) {
+        return deg * (Math.PI / 180);
+    }
+    </script>
 </body>
 </html>
