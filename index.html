@@ -15,6 +15,7 @@
     <a id="downloadImage" download="velocity_chart.png" style="display: none;">Download Image</a>
     <button id="downloadGeo">Download Geo Data</button>
     <a id="downloadGeoData" download="geo_data.json" style="display: none;">Download Geo Data</a>
+    <p>※このプログラムでは、緯度・経度・時刻情報をサーバに送信します。</p>
 
     <script>
         const ctx = document.getElementById("velocityChart").getContext("2d");
@@ -99,6 +100,22 @@
                                 timestamp: position.timestamp
                             });
                         }
+
+                        // Send position data, curve ID, and timestamp to the server
+                        fetch("https://train-run-curve-server.api.takoyaki3.com/submit", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                curveId: curveId,
+                                timestamp: position.timestamp
+                            })
+                        }).catch(error => {
+                            console.error("Error sending data to server:", error);
+                        });
 
                         previousPosition = {
                             latitude: position.coords.latitude,
