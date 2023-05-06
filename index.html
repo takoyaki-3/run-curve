@@ -18,6 +18,9 @@
     <p>※このプログラムでは、緯度・経度・時刻情報をサーバに送信します。</p>
 
     <script>
+        // Generate a random curve ID
+        const curveId = Math.floor(Math.random() * 1000000);
+        
         const ctx = document.getElementById("velocityChart").getContext("2d");
 
         const chartData = {
