@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Velocity Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+        
+        canvas {
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Train Velocity Tracker</h1>
+    <canvas id="velocityChart" width="800" height="400"></canvas>
+    <button id="startTracking">Start Tracking</button>
+    <a id="downloadImage" download="velocity_chart.png" style="display: none;">Download Image</a>
+    <button id="captureAndDownload">Capture and Download</button>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.3/html2canvas.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
