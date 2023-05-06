@@ -41,7 +41,7 @@ startTrackingButton.addEventListener("click", () => {
     if (navigator.geolocation) {
         let previousPosition = null;
         let distance = 0;
-        
+
         navigator.geolocation.watchPosition(
             position => {
                 if (previousPosition) {
@@ -49,19 +49,19 @@ startTrackingButton.addEventListener("click", () => {
                         latitude: position.coords.latitude,
                         longitude: position.coords.longitude
                     };
-                    
+
                     const deltaDistance = haversineDistance(previousPosition, currentPosition);
                     distance += deltaDistance;
-                    
+
                     const deltaTime = (position.timestamp - previousPosition.timestamp) / 1000;
-                    const velocity = (deltaDistance / deltaTime) * 3.6;
-                    
+                    const velocity = (deltaDistance * 1000 / deltaTime) * 3.6;
+
                     chartData.labels.push(distance.toFixed(2));
                     chartData.datasets[0].data.push(velocity.toFixed(2));
-                    
+
                     velocityChart.update();
                 }
-                
+
                 previousPosition = {
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
