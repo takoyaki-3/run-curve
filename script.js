@@ -1,5 +1,21 @@
 const startTrackingButton = document.getElementById("startTracking");
 const velocityChartElement = document.getElementById("velocityChart");
+const downloadGeoButton = document.getElementById("downloadGeo");
+const downloadGeoDataLink = document.getElementById("downloadGeoData");
+
+const geoData = [];
+
+downloadGeoButton.addEventListener("click", () => {
+    const jsonGeoData = JSON.stringify(geoData);
+    const blob = new Blob([jsonGeoData], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    downloadGeoDataLink.href = url;
+    downloadGeoDataLink.style.display = "block";
+    downloadGeoDataLink.click();
+
+    URL.revokeObjectURL(url);
+});
 
 const chartData = {
     labels: [],
@@ -54,7 +70,7 @@ startTrackingButton.addEventListener("click", () => {
                     distance += deltaDistance;
 
                     const deltaTime = (position.timestamp - previousPosition.timestamp) / 1000;
-                    const velocity = (deltaDistance * 1000 / deltaTime) * 3.6;
+                    const velocity = (deltaDistance * 1000 / deltaTime) * 3600;
 
                     chartData.labels.push(distance.toFixed(2));
                     chartData.datasets[0].data.push(velocity.toFixed(2));
@@ -106,6 +122,8 @@ captureAndDownloadButton.addEventListener("click", async () => {
     try {
         const canvas = await html2canvas(velocityChartElement);
         const imageDataUrl = canvas.toDataURL("image/png");
+        const timestamp = new Date().toISOString().replace(/[:\-T]/g, "_").replace(/\..+/, "");
+        downloadImageLink.download = `velocity_chart_${timestamp}.png`;
         downloadImageLink.href = imageDataUrl;
         downloadImageLink.style.display = "block";
         downloadImageLink.click();
