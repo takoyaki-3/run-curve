@@ -104,18 +104,24 @@
                             });
                         }
 
+                        const body = {
+                            data: JSON.stringify(({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                curveId: curveId,
+                                timestamp: position.timestamp,
+                            })),
+                            key: "train-run-curve-server",
+                            readable: "admin",
+                        }
+
                         // Send position data, curve ID, and timestamp to the server
-                        fetch("https://train-run-curve-server.api.takoyaki3.com/submit", {
+                        fetch("https://kva-store.api.takoyaki3.com", {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json"
                             },
-                            body: JSON.stringify({
-                                latitude: position.coords.latitude,
-                                longitude: position.coords.longitude,
-                                curveId: curveId,
-                                timestamp: position.timestamp
-                            })
+                            body:JSON.stringify(body),
                         }).catch(error => {
                             console.error("Error sending data to server:", error);
                         });
